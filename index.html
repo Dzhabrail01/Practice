@@ -1,0 +1,114 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>HTTP Client</title>
+</head>
+<style>
+
+    body{
+        margin: 0;
+        padding: 0;
+    }
+    h1{
+        font-family: Arial, sans-serif;
+        text-shadow: 2px 1px 2px rgba(0, 0, 0, 0.577);
+        font-size: 55px;
+        color: white;
+        background: linear-gradient(to right, rgba(47, 0, 255, 0.718), rgb(239, 58, 89), rgb(211, 5, 234));
+        box-shadow: 0px 10px 53px 0px rgba(199, 12, 232, 0.678);
+        margin: 0;
+        text-align: center;
+        padding: 15px 0px 15px 0px;
+        margin-bottom: 120px;
+    }
+
+    button{
+        font-family: 'Trebuchet MS', sans-serif;
+        font-size: 22px;
+        padding: 15px 30px 15px 30px;
+        border: none;
+        background: linear-gradient(to right,rgb(239, 58, 89), rgb(211, 5, 234));
+        color: white;
+        text-shadow: 2px 1px 2px rgba(0, 0, 0, 0.577);
+        box-shadow: 5px 3px 4px 0px rgba(0, 0, 0, 0.364);
+        border-radius: 25px;
+        transition: 0.3s;
+    }
+
+    button:hover{
+        border-radius: 0px;
+        background: linear-gradient(to right,rgb(236, 8, 8), rgb(111, 0, 208));
+    }
+
+    input{
+        width: 250px;
+        height: 50px;
+        font-size: 18px;
+        border: none;
+        box-shadow: 1px 2px 10px 0px rgba(0, 0, 0, 0.364);
+        margin: 0px 30px 50px 500px;
+    }
+
+    div{
+        margin: 0px 35px 0px 35px;
+    }
+</style>
+<body>
+    <h1>HTTP Client</h1>
+    <input type="text" id="keyword" placeholder="Enter keyword">
+    <button onclick="fetchUrls()">Поиск URLs</button>
+    <div id="urls"></div>
+    <div id="downloadStatus"></div>
+    <div id="content"></div>
+
+    <script>
+        async function fetchUrls() {
+            const keyword = document.getElementById('keyword').value;
+            try {
+                const response = await fetch(`/urls?keyword=${keyword}`);
+                if (!response.ok) {
+                    const errorData = await response.json();
+                    throw new Error(errorData.error || 'Failed to fetch URLs');
+                }
+                const data = await response.json();
+                const urlsDiv = document.getElementById('urls');
+                urlsDiv.innerHTML = '';
+                data.urls.forEach(url => {
+                    const button = document.createElement('button');
+                    button.innerText = url;
+                    button.onclick = () => downloadContent(url);
+                    urlsDiv.appendChild(button);
+                });
+            } catch (error) {
+                console.error('Error fetching URLs:', error.message);
+                document.getElementById('downloadStatus').innerText = `Error: ${error.message}`;
+            }
+        }
+
+        async function downloadContent(url) {
+            try {
+                const response = await fetch(`/download?url=${url}`);
+                if (!response.ok) {
+                    const errorData = await response.json();
+                    throw new Error(errorData.error || 'Failed to download content');
+                }
+
+                
+                const content = await response.text();
+
+                localStorage.setItem(url, content);
+
+                
+                document.getElementById('content').innerText = content;
+                document.getElementById('downloadStatus').innerText = 'Download complete';
+
+            } catch (error) {
+                console.error('Download error:', error.message);
+                document.getElementById('downloadStatus').innerText = `Error: ${error.message}`;
+            }
+        }
+    </script>
+</body>
+</html>
